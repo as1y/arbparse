@@ -95,6 +95,13 @@ class SpredController extends AppController {
             return true;
         }
 
+        if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
+        {
+            $Ticker = $this->GetTickerBDONE("OUT", $_POST['ticker']);
+            $this->WritePersonalTickers($_POST['id'], $Ticker);
+            return true;
+        }
+
 
 
         return true;
@@ -142,7 +149,7 @@ class SpredController extends AppController {
 
         if ($this->StartMoneta == "USDT") $round = 2;
 
-        show($DATA);
+       // show($DATA);
 
         foreach ($DATA as $VAL)
         {
@@ -181,17 +188,11 @@ class SpredController extends AppController {
                 3. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b><br>
             <?php else:?>
 
-                1. На бирже продаем <?=$VAL['startcapital']?> <b><?=$VAL['startmoneta']?></b> и получаем
-
+                1. На бирже продаем <?=$VAL['startcapital']?> <b><?=$VAL['startmoneta']?></b> и получаем ~ <?=$VAL['amountperekrestok']?> <b><?=$VAL['perekrestok']?></b><br>
+                2. На бирже продаем <?=$VAL['amountperekrestok']?> <b><?=$VAL['perekrestok']?></b> и получаем ~ <?=$VAL['symbolamount']?> <b><?=$VAL['symbolbest']?></b><br>
+                2. Меняем <?=$VAL['symbolamount']?> <b><?=$VAL['symbolbest']?></b> через обменник и получаем <?=$VAL['amount']?> <b><?=$VAL['startmoneta']?></b><br>
+                3. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b><br>
             <?php endif; ?>
-
-
-                            <?php if($VAL['startmoneta'] == $VAL['perekrestok']): ?>
-
-                            <?php else:?>
-                                3. Продаем <?=$VAL['amount']?> <?=$VAL['perekrestok']?> и получаем ~ <?=$VAL['startmoneta']?> <?=$VAL['amountstart']?> <br>
-                                4. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b> <br>
-                            <?php endif; ?>
 
                         </p>
 
@@ -204,7 +205,7 @@ class SpredController extends AppController {
 
                         <!--                        <div class="text-muted">85 использований</div>-->
 
-                        <a href="/main/work/?symbolbest=<?=$VAL['symbolbest']?>&exchange=<?=$exchange?>&type=enter" type="button"  class="btn btn-teal mt-3"><i class="icon-arrow-right8 mr-2"></i> В РАБОТУ</a>
+                        <a href="/main/work/?symbolbest=<?=$VAL['symbolbest']?>&exchange=<?=$exchange?>&perekrestok=<?=$VAL['perekrestok']?>&type=exit" type="button"  class="btn btn-teal mt-3"><i class="icon-arrow-right8 mr-2"></i> В РАБОТУ</a>
                     </div>
                 </div>
             </div>

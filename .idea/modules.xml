@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../arb/.idea/arb.iml" filepath="$PROJECT_DIR$/../arb/.idea/arb.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/arbparse.iml" filepath="$PROJECT_DIR$/.idea/arbparse.iml" />
     </modules>
   </component>
