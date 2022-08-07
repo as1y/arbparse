@@ -30,9 +30,9 @@ class ParsecurController extends AppController {
         // Перезаписывать на диск???
 
 
-        $exchange = new \ccxt\ascendex (array ('timeout' => 30000));
+        $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));
         $DATA = $exchange->fetchCurrencies();
-        $this->WriteTickers("Ascendex", $DATA);
+        $this->WriteTickers("Hitbtc", $DATA);
 
         $exchange = new \ccxt\gateio (array ('timeout' => 30000));
         $DATA = $exchange->fetchCurrencies();
@@ -44,10 +44,11 @@ class ParsecurController extends AppController {
         $DATA = $exchange->fetchCurrencies();
         $this->WriteTickers("Exmo", $DATA);
 
+        /*
         $exchange = new \ccxt\deribit (array ('timeout' => 30000));
         $DATA = $exchange->fetchCurrencies();
         $this->WriteTickers("Deribit", $DATA);
-
+        */
 
 
 

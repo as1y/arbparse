@@ -26,6 +26,8 @@ class SpredController extends AppController {
     public function indexAction()
     {
 
+        $Panel =  new Panel();
+
         // С какими перекрестками работаем
         $this->PereWork[] = "USDT";
         $this->PereWork[] = "BTC";
@@ -37,19 +39,10 @@ class SpredController extends AppController {
         $this->EXLOGOS['Exmo'] = "/assets_base/exmo.png";
 
 
-        $table = R::findAll("obmenin", 'WHERE ticker=?', ["BTC"]);
-  
-        echo  "DA BLAS ";
-        show($table);
-
-        exit("11111111");
-
 
         if (empty($_POST)) exit("fi");
 
         $napravlenie = "enter";
-
-
 
 
         if (!empty($_POST['currency']) && $napravlenie == "enter")
@@ -59,15 +52,27 @@ class SpredController extends AppController {
                      $this->StartMoneta = $_POST['currency'];
                      $this->StartCapital = $_POST['amount'];
 
-
                 foreach ($arrEX as $exchange) {
-
                     $DATA = $this->GetWorkARR($exchange, $napravlenie);
-
-                    show($DATA);
-
                     $this->renderEnter($DATA, $exchange);
                 }
+
+            return true;
+
+        }
+
+
+        if (!empty($_POST['currency']) && $napravlenie == "exit")
+        {
+
+            $arrEX = explode(",", $_POST['arrEx']);
+            $this->StartMoneta = $_POST['currency'];
+            $this->StartCapital = $_POST['amount'];
+
+            foreach ($arrEX as $exchange) {
+                $DATA = $this->GetWorkARR($exchange, $napravlenie);
+                $this->renderEnter($DATA, $exchange);
+            }
 
             return true;
 
@@ -134,9 +139,16 @@ class SpredController extends AppController {
 
     private function renderEnter($DATA, $exchange){
 
+
+        if ($this->StartMoneta == "USDT") $round = 2;
+
         foreach ($DATA as $VAL)
         {
             $profit = $VAL['amountstart']-$VAL['startcapital'];
+            $profit = round($profit, $round);
+
+            if ($profit < 0) continue;
+
             ?>
 
 
@@ -164,10 +176,10 @@ class SpredController extends AppController {
                             2. На бирже продаем <?=$VAL['symbolamount']?> <?=$VAL['symbolbest']?> | Получаем <?=$VAL['amount']?> <?=$VAL['perekrestok']?>  <br>
 
                             <?php if($VAL['startmoneta'] == $VAL['perekrestok']): ?>
-                                3. Профит <?=$profit?>  <?=$VAL['startmoneta']?><br>
+                                3. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b><br>
                             <?php else:?>
                                 3. Продаем <?=$VAL['amount']?> <?=$VAL['perekrestok']?> и получаем ~ <?=$VAL['startmoneta']?> <?=$VAL['amountstart']?> <br>
-                                4. Профит <?=$profit?>  <?=$VAL['startmoneta']?> <br>
+                                4. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b> <br>
                             <?php endif; ?>
 
                         </p>
@@ -177,7 +189,7 @@ class SpredController extends AppController {
 
                     <div class="mt-3 mt-lg-0 ml-lg-3 text-center">
 
-                        <h3 class="mb-0 font-weight-semibold"><span class="text-success"><i class="icon-stats-growth2 mr-2"></i> <?=$profit*(-1)?></span></h3>
+                        <h3 class="mb-0 font-weight-semibold"><span class="text-success">+<?=$profit?><b> <?=$this->StartMoneta?></b></span></h3>
 
                         <!--                        <div class="text-muted">85 использований</div>-->
 
@@ -509,19 +521,9 @@ class SpredController extends AppController {
     private function LoadTickersBD($type)
     {
 
-        if ($type == "IN")
-        {
-            echo "you";
-
-        }
         $table = [];
-         $table = R::findAll("obmenin", 'WHERE ticker=?', ["BTC"]);
-
-        show($table);
-
-
-       // if ($type == "IN") $table = R::findAll("obmenin", 'WHERE method=?', [$this->StartMoneta]);
-     //   if ($type == "OUT") $table = R::findAll("obmenout",'WHERE method=?', [$this->StartMoneta]);
+        if ($type == "IN") $table = R::findAll("obmenin", 'WHERE method=?', [$this->StartMoneta]);
+        if ($type == "OUT") $table = R::findAll("obmenout",'WHERE method=?', [$this->StartMoneta]);
 
         return $table;
     }

@@ -112,7 +112,7 @@ class View {
     public static function getBreadcrumbs(){
 
         if ( self::$Breadcrumbs['HOME'] == false) {
-            echo "<br>";
+          //  echo "<br>";
             return false;
         }
 

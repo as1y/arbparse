@@ -6,9 +6,6 @@ use RedBeanPHP\R;
 abstract class Model
 {
 	public $errors = [];
-    static $COMPANIES = [];
-    static $CATEGORY = [];
-    static $BRANDS = [];
     static $USER = [];
 
 
@@ -17,23 +14,11 @@ abstract class Model
         if(!R::testConnection()){
 
             R::setup(CONFIG['db']['dsn'],CONFIG['db']['user'],CONFIG['db']['pass']);
-//              R::fancyDebug( TRUE );
+            //  R::fancyDebug( TRUE );
             //  R::freeze(TRUE);
 
-//            if (!empty($_SESSION['ulogin']['id'])){
-//                self::$USER = $this->loaduser(CONFIG['USERTABLE'], $_SESSION['ulogin']['id']);
-//            }
-
-            if (!empty($_SESSION['ulogin']['id'])){
-                self::$USER = $this->loaduser(CONFIG['USERTABLE'], $_SESSION['ulogin']['id']);
-            }
 
 
-            self::$CATEGORY = R::findAll('category', 'ORDER by `countshop` DESC');
-
-            self::$COMPANIES = R::findAll('companies', 'ORDER by `id` ASC');
-
-            self::$BRANDS = R::findAll('brands', 'ORDER by `countview` DESC');
 
 
 
