@@ -1,15 +1,13 @@
 <?php
 namespace APP\controllers;
 use APP\core\Cache;
-use APP\models\Addp;
 use APP\models\Panel;
 use APP\core\base\Model;
 use RedBeanPHP\R;
 
 class SpredController extends AppController {
-    public $layaout = 'PANEL';
-    public $BreadcrumbsControllerLabel = "Панель управления";
-    public $BreadcrumbsControllerUrl = "/panel";
+    public $layaout = false;
+
 
     public $TickersBDIN = [];
     public $TickersBDOUT = [];
@@ -27,9 +25,6 @@ class SpredController extends AppController {
     // ТЕХНИЧЕСКИЕ ПЕРЕМЕННЫЕ
     public function indexAction()
     {
-
-        $this->layaout = false;
-
 
         // С какими перекрестками работаем
         $this->PereWork[] = "USDT";
