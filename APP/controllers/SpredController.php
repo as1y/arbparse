@@ -42,7 +42,7 @@ class SpredController extends AppController {
 
         if (empty($_POST)) exit("fi");
 
-        $napravlenie = "enter";
+        $napravlenie = "exit";
 
 
         if (!empty($_POST['currency']) && $napravlenie == "enter")
@@ -69,9 +69,12 @@ class SpredController extends AppController {
             $this->StartMoneta = $_POST['currency'];
             $this->StartCapital = $_POST['amount'];
 
+
             foreach ($arrEX as $exchange) {
                 $DATA = $this->GetWorkARR($exchange, $napravlenie);
-                $this->renderEnter($DATA, $exchange);
+
+                $this->renderExit($DATA, $exchange);
+
             }
 
             return true;
@@ -134,7 +137,84 @@ class SpredController extends AppController {
 
 
 
+    private function renderExit($DATA, $exchange){
 
+
+        if ($this->StartMoneta == "USDT") $round = 2;
+
+        show($DATA);
+
+        foreach ($DATA as $VAL)
+        {
+            $profit = $VAL['amount']-$VAL['startcapital'];
+            $profit = round($profit, $round);
+
+            if ($profit < 0) continue;
+
+            ?>
+
+
+            <div class="card card-body">
+                <div class="media align-items-center align-items-lg-start text-center text-lg-left flex-column flex-lg-row">
+                    <div class="mr-lg-3 mb-3 mb-lg-0">
+                        <a href="#">
+                            <img src="<?=$this->EXLOGOS[$exchange]?>" width="96" alt="">
+                        </a>
+                    </div>
+
+                    <div class="media-body">
+                        <h6 class="media-title font-weight-semibold">
+                            <a href="#">СВЯЗКА НА ВЫХОД</a>
+                        </h6>
+
+                        <ul class="list-inline list-inline-dotted mb-3 mb-lg-2">
+                            <li class="list-inline-item"><a href="#" class="text-muted"><?=$VAL['startmoneta']?></a></li>
+                            <li class="list-inline-item"><a href="#" class="text-muted"><?=$VAL['symbolbest']?></a></li>
+                        </ul>
+
+                        <p class="mb-3">
+
+            <?php if($VAL['startmoneta'] == $VAL['perekrestok']): ?>
+
+                1. На бирже продаем <?=$VAL['startcapital']?> <b><?=$VAL['startmoneta']?></b> <i class="icon-redo2"></i>  Получаем ~ <?=$VAL['symbolamount']?> <b><?=$VAL['symbolbest']?></b> <br>
+                2. Меняем <?=$VAL['symbolamount']?> <b><?=$VAL['symbolbest']?></b> через обменник и получаем <?=$VAL['amount']?> <b><?=$VAL['startmoneta']?></b><br>
+                3. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b><br>
+            <?php else:?>
+
+                1. На бирже продаем <?=$VAL['startcapital']?> <b><?=$VAL['startmoneta']?></b> и получаем
+
+            <?php endif; ?>
+
+
+                            <?php if($VAL['startmoneta'] == $VAL['perekrestok']): ?>
+
+                            <?php else:?>
+                                3. Продаем <?=$VAL['amount']?> <?=$VAL['perekrestok']?> и получаем ~ <?=$VAL['startmoneta']?> <?=$VAL['amountstart']?> <br>
+                                4. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b> <br>
+                            <?php endif; ?>
+
+                        </p>
+
+
+                    </div>
+
+                    <div class="mt-3 mt-lg-0 ml-lg-3 text-center">
+
+                        <h3 class="mb-0 font-weight-semibold"><span class="text-success">+<?=$profit?><b> <?=$this->StartMoneta?></b></span></h3>
+
+                        <!--                        <div class="text-muted">85 использований</div>-->
+
+                        <a href="/main/work/?symbolbest=<?=$VAL['symbolbest']?>&exchange=<?=$exchange?>&type=enter" type="button"  class="btn btn-teal mt-3"><i class="icon-arrow-right8 mr-2"></i> В РАБОТУ</a>
+                    </div>
+                </div>
+            </div>
+
+            <?php
+        }
+
+
+        return true;
+    }
 
 
     private function renderEnter($DATA, $exchange){
@@ -214,7 +294,6 @@ class SpredController extends AppController {
         // Загрузка данных
         $ExchangeTickers = $this->GetTickerText($exchange);
 
-
         $TickersIN = $this->LoadTickersBD("IN");
         $TickersOUT = $this->LoadTickersBD("OUT");
 
@@ -226,6 +305,13 @@ class SpredController extends AppController {
             $DATA['errors'] = "Монета ".$this->StartMoneta." не поддерживается<br>";
             return $DATA;
         }
+
+        if (empty($TickersOUT))
+        {
+            $DATA['errors'] = "Монета ".$this->StartMoneta." не поддерживается<br>";
+            return $DATA;
+        }
+
 
         if (!is_numeric($this->StartCapital)){
             $DATA['errors'] = "Не корректно задан рабочий капитал<br>";
@@ -240,41 +326,41 @@ class SpredController extends AppController {
         }
 
 
-
-        foreach ($this->PereWork as $Perekrestok)
+        if ($type == "exit")
         {
-            // ШАГ -1 БАЗОВЫЙ ВХОД НА МОНЕТУ ИЗ ВСЕХ БИРЖ
-            //  echo "Получаем сколько можем получить ".$Perekrestok." если продадим купленную монету <br>";
-            $StartArr = $this->GetStartArr($TickersIN);
 
-             $SITO1 = $this->SitoStep1($StartArr, $Perekrestok, $ExchangeTickers, $exchange);
+            foreach ($this->PereWork as $Perekrestok){
+
+                $SITO2 = $this->SitoStep2($TickersOUT, $ExchangeTickers, $exchange, $Perekrestok);
+                if(empty($SITO2)) continue;
+                $DATA[] = $SITO2;
+
+            }
 
 
-            // Если поставлен только ВХОД
-            if ($type == "enter")
+        }
+
+        if ($type == "enter")
+        {
+            foreach ($this->PereWork as $Perekrestok)
             {
+                $StartArr = $this->GetStartArr($TickersIN);
+                $SITO1 = $this->SitoStep1($StartArr, $Perekrestok, $ExchangeTickers, $exchange);
                 if (!empty($SITO1['errors'])) continue;
                 $DATA[] = $SITO1;
                 continue;
             }
 
-
-
-            $EndArr[$exchange][$Perekrestok]['enter'] = $SITO1;
-            //show($SITO1);
-            // echo "Получаем список монет которые сможем купить за ".$SITO1['amount']." - ".$SITO1['perekrestok']." <br>";
-
-            $SITO2 = $this->SitoStep2($TickersOUT, $SITO1, $ExchangeTickers);
-
-            //show($SITO2);
-
-            $EndArr[$exchange][$Perekrestok]['exit'] = $this->GetEndArr($SITO2, $TickersOUT);
-
         }
 
 
 
-        //show($EndArr);
+           // $EndArr[$exchange][$Perekrestok]['enter'] = $SITO1;
+            //show($SITO1);
+            // echo "Получаем список монет которые сможем купить за ".$SITO1['amount']." - ".$SITO1['perekrestok']." <br>";
+            //show($SITO2);
+            //$EndArr[$exchange][$Perekrestok]['exit'] = $this->GetEndArr($SITO2, $TickersOUT);
+
 
 
         return $DATA;
@@ -386,15 +472,14 @@ class SpredController extends AppController {
 
     }
 
-    private function SitoStep2($TickersOUT, $SITO1, $ExchangeTickers){
+    private function SitoStep2($TickersOUT, $ExchangeTickers, $exchange, $Perekrestok){
 
         $DATA = [];
-
-        // ШАГ2 Получаем кол-во монет, которые сможем купить за монету перекрестка
 
         // Проверка на доступностью тикера на покупку в бирже
 
         foreach ($TickersOUT as $VAL){
+
 
             $checksymbol = $this->checksymbolenter($VAL['ticker']);
 
@@ -404,18 +489,33 @@ class SpredController extends AppController {
                 continue;
             }
             if ($VAL['limit'] > $this->StartCapital){
-              //  echo "<font color='red'>Тикер ".$VAL['ticker']." не проходит по стартовому капиталу  </font> <br>";
+               // echo "<font color='red'>Тикер ".$VAL['ticker']." не проходит по стартовому капиталу  </font> <br>";
                 continue;
             }
 
-            if (empty($SITO1['perekrestok'])) continue;
 
-            $TickerBirga = $VAL['ticker']."/".$SITO1['perekrestok']."";
+            $TickerBirga = $VAL['ticker']."/".$Perekrestok;
 
             if (empty($ExchangeTickers[$TickerBirga]['bid'])) continue;
 
-            $avgprice = ($ExchangeTickers[$TickerBirga]['bid']+$ExchangeTickers[$TickerBirga]['ask'])/2;
-            $amoumtMoneta = $SITO1['amount']/$avgprice;
+          //  echo "Тикер на бирже ".$TickerBirga."<br>";
+
+
+            $amountperekrestok = 0;
+            if ($this->StartMoneta == $Perekrestok) $amountperekrestok = $this->StartCapital;
+
+            if ($this->StartMoneta != $Perekrestok)
+            {
+                $PerekrestokTicker = $Perekrestok."/".$this->StartMoneta;
+                $PerekrestokAVGprice = ($ExchangeTickers[$PerekrestokTicker]['bid'] + $ExchangeTickers[$PerekrestokTicker]['ask'])/2;
+                $amountperekrestok = $this->StartCapital/$PerekrestokAVGprice;
+            }
+            // Получаем сколько монеты получим после продажи
+
+
+         //   $avgprice = ($ExchangeTickers[$TickerBirga]['bid']+$ExchangeTickers[$TickerBirga]['ask'])/2;
+            $avgprice = $ExchangeTickers[$TickerBirga]['bid'];
+            $amoumtMoneta = $amountperekrestok/$avgprice;
 
 
             // Фильтрация символ на ОБЪЕМ ТОРГОВ
@@ -424,18 +524,42 @@ class SpredController extends AppController {
 
             if ($amoumtMoneta > $ExchangeTickers[$TickerBirga]['baseVolume']/2)
             {
+              //  echo "Кол-во монеты: ".$amoumtMoneta."<br>";
+              //  echo "Объем в кол-ве монеты: ".$ExchangeTickers[$TickerBirga]['baseVolume']."<br>";
               //  echo "<font color='red'>Тикер ".$TickerBirga." не проходит по объему торгов</font> <br> ";
+              //  echo "<hr>";
                 continue;
             }
 
+            $resultsale = $amoumtMoneta*$VAL['price'];
 
             //  echo "Работаем с тикером ".$VAL['ticker']."<br>";
-           //   echo "Тикер на бирже ".$TickerBirga."<br>";
-          //     echo "Цена ".$avgprice."<br>";
-          //     echo "Кол-во актива ".$amoumtMoneta."<br>";
-            $DATA[$VAL['ticker']] = $amoumtMoneta;
+            //  echo "Тикер на бирже ".$TickerBirga."<br>";
+            //   echo "Цена ".$avgprice."<br>";
+            //   echo "Кол-во актива ".$amoumtMoneta."<br>";
+
+        //    $STEP1['amount'][$key] = $value;
+        //    $STEP1['result'][$key] = $amountPerekrestok;
+
+            $RESULT['amount'][$VAL['ticker']] = $amoumtMoneta;
+            $RESULT['result'][$VAL['ticker']] = $resultsale;
 
         }
+
+        if (empty($RESULT['result'])) return false;
+
+        arsort($RESULT['result']);
+
+        $DATA['exchange'] = $exchange;
+        $DATA['startcapital'] = $this->StartCapital;
+        $DATA['startmoneta'] = $this->StartMoneta;
+        $DATA['perekrestok'] = $Perekrestok;
+        $DATA['amountperekrestok'] = $amountperekrestok;
+        $DATA['symbolbest'] = array_key_first($RESULT['result']);
+        $DATA['symbolamount'] = $RESULT['amount'][$DATA['symbolbest']];
+        $DATA['amount'] = reset($RESULT['result']);
+
+
 
         return $DATA;
 
