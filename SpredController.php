@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 namespace APP\controllers;
 use APP\core\Cache;
 use APP\models\Panel;
@@ -18,6 +18,7 @@ class SpredController extends AppController {
     public $StartCapital = 0;
     public $StartMoneta = "";
     public $PereWork = [];
+
     public $EXLOGOS = [];
 
 
@@ -25,7 +26,7 @@ class SpredController extends AppController {
     public function indexAction()
     {
 
-      //  $Panel =  new Panel();
+        $Panel =  new Panel();
 
         $this->layaout = "EMPTY";
 
@@ -54,10 +55,13 @@ class SpredController extends AppController {
                      $this->StartCapital = $_POST['amount'];
 
                 foreach ($arrEX as $exchange) {
-                    $DATA[] = $this->GetWorkARR($exchange, $napravlenie);
+                    $DATA = $this->GetWorkARR($exchange, $napravlenie);
+
+                    exit("111");
+                   // $this->renderEnter($DATA, $exchange);
 
                 }
-                show($DATA);
+
             return true;
 
         }
@@ -302,6 +306,7 @@ class SpredController extends AppController {
 
         // Загрузка данных
         $ExchangeTickers = $this->GetTickerText($exchange);
+
         $TickersIN = $this->LoadTickersBD("IN");
         $TickersOUT = $this->LoadTickersBD("OUT");
 

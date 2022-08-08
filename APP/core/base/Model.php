@@ -17,11 +17,6 @@ abstract class Model
             //  R::fancyDebug( TRUE );
             //  R::freeze(TRUE);
 
-
-
-
-
-
         }
 
 	}

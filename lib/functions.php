@@ -249,6 +249,8 @@ function clearrequis($value)
     $value = strip_tags($value);
     $value = htmlspecialchars($value);
     $value = str_replace(" ", "", $value);
+    $value = str_replace("\n\n", "", $value);
+    $value = str_replace("\r", "", $value);
 
 
     return $value;

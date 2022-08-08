@@ -32,6 +32,7 @@ class View {
             if (ERRORS == 1) echo "<p><b>Не найден вид </b>$file_view</p>";
 		}
 		$content = ob_get_clean();
+		$content = utf8_encode($content);
 
 		if (false !== $this->layaout){
 		    $file_layaout = WWW."/APP/views/layaouts/".$this->layaout.".php";
