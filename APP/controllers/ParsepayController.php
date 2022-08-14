@@ -6,14 +6,13 @@ use APP\models\Panel;
 use APP\core\base\Model;
 use RedBeanPHP\R;
 
-class ParsecurController extends AppController {
+class ParsepayController extends AppController {
     public $layaout = 'PANEL';
     public $BreadcrumbsControllerLabel = "Панель управления";
     public $BreadcrumbsControllerUrl = "/panel";
 
-    // Типа парсинга записываем для БД
-    public $type = "Currency";
 
+    public $type = "PAY";
 
     // ТЕХНИЧЕСКИЕ ПЕРЕМЕННЫЕ
     public function indexAction()
@@ -25,30 +24,34 @@ class ParsecurController extends AppController {
         $this->ControlTrek();
         $this->StartTrek();
 
-        echo "<h2>ПАРСИНГ СОСТОЯНИЕ МОНЕТ</h2>";
-
-        // Перезаписывать на диск???
+        echo "<h2>ПАРСИНГ ТИКЕРОВ PAYEER</h2>";
 
 
-        $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));
-        $DATA = $exchange->fetchCurrencies();
-        $this->WriteTickers("Hitbtc", $DATA);
+        $RESULT = $this->GetAllPairs();
 
-        $exchange = new \ccxt\gateio (array ('timeout' => 30000));
-        $DATA = $exchange->fetchCurrencies();
-        $this->WriteTickers("Gateio", $DATA);
+        $MASSIV = [];
+        foreach ($RESULT['pairs'] as $key=>$VAL){
+
+            $key2 = str_replace("_", "/", $key);
+            $MASSIV[$key2] = $VAL;
+          //  echo $key2."<br>";
+
+        }
+
+          show($MASSIV);
+
+        $this->WriteTickers("Payeer", $MASSIV);
 
 
 
-        $exchange = new \ccxt\exmo (array ('timeout' => 30000));
-        $DATA = $exchange->fetchCurrencies();
-        $this->WriteTickers("Exmo", $DATA);
+//        $exchange = new \ccxt\exmo (array ('timeout' => 30000));
+//        $DATA = $exchange->fetchCurrencies();
+//        show($DATA);
 
-        /*
-        $exchange = new \ccxt\deribit (array ('timeout' => 30000));
-        $DATA = $exchange->fetchCurrencies();
-        $this->WriteTickers("Deribit", $DATA);
-        */
+
+    //    show($TICKERS);
+
+       // exit("11");
 
 
 
@@ -68,6 +71,36 @@ class ParsecurController extends AppController {
 
 
 //        $this->set(compact(''));
+
+    }
+
+
+
+    private function GetAllPairs()
+    {
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "https://payeer.com/api/trade/ticker");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+
+        $response = curl_exec($ch);
+        $response = json_decode($response, true);
+        curl_close($ch);
+
+
+        return $response;
+
+    }
+
+
+    private function GetTickerList(){
+
+         $table = [];
+         $table = R::findAll("obmenin", 'WHERE method=?', ["USDT"]);
+
+
+         return $table;
 
     }
 
@@ -106,16 +139,17 @@ class ParsecurController extends AppController {
     private function WriteTickers($exchangename, $Tickers){
 
 
-        if (!file_exists("Cur".$exchangename.".txt"))
+
+        if (!file_exists("Ticker".$exchangename.".txt"))
         {
-            $fd = fopen("Cur".$exchangename.".txt", 'w') or die("не удалось создать файл");
+            $fd = fopen("Ticker".$exchangename.".txt", 'w') or die("не удалось создать файл");
             fwrite($fd, "");
             fclose($fd);
         }
 
         $data = json_encode($Tickers);
 
-        file_put_contents("Cur".$exchangename.".txt", $data);
+        file_put_contents("Ticker".$exchangename.".txt", $data);
 
         return true;
 

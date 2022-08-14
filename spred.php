@@ -11,8 +11,7 @@ require 'vendor/autoload.php';
 require 'lib/functions.php'; //ОБЩИЕ ФУНКЦИИ
 require 'lib/functions_app.php'; //ФУНКЦИИ ПРИЛОЖЕНИЯ
 
-     $_GLOBAL['FC'] = [];
-
+$_GLOBAL['FC'] = [];
 
 if(!R::testConnection()){
      R::setup(CONFIG['db']['dsn'],CONFIG['db']['user'],CONFIG['db']['pass']);
@@ -27,30 +26,51 @@ $Perework[] = "BTC";
 $Perework[] = "ETH";
 $Perework[] = "TRX";
 
+
 $_GLOBAL['PW'] = $Perework;
 
 
-$_POST['StartMoneta'] = "USDT";
-$_POST['StartCapital'] = 10000;
-$_POST['arrEx'] = "Exmo,Hitbtc";
-
 //if (empty($_POST)) exit("fi");
 
-$napravlenie = "enter";
 
-if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
+//$_POST['StartMoneta'] = "USDT";
+//$_POST['type'] = "exit";
+//$_POST['StartCapital'] = 10000;
+//$_POST['arrEx'] = "Hitbtc";
+
+
+if (!empty($_POST['StartMoneta']) && !empty($_POST['type'])){
 
      $arrEX = explode(",", $_POST['arrEx']);
 
      foreach ($arrEX as $exchange) {
-
-          $DATA[] = GetWorkARR($exchange, $napravlenie, $_GLOBAL['PW']);
-
+          $DATA[$exchange] = GetWorkARR($exchange, $_POST['type'], $_GLOBAL['PW']);
      }
 
 
-     show($DATA);
+     $RESULT['type'] = $_POST['type'];
+     $RESULT['result'] = $DATA;
+     $RESULT = json_encode($RESULT, JSON_UNESCAPED_UNICODE);
+     print_r($RESULT);
 
+}
+
+
+
+if(!empty($_POST['BDIN']) &&  $_POST['BDIN'] == true)
+{
+    $Ticker = GetTickerBDONE("IN", $_POST['ticker']);
+    $RESULT = json_encode($Ticker, JSON_UNESCAPED_UNICODE);
+    print_r($RESULT);
+    return true;
+}
+
+if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
+{
+    $Ticker = GetTickerBDONE("OUT", $_POST['ticker']);
+    $RESULT = json_encode($Ticker, JSON_UNESCAPED_UNICODE);
+    print_r($RESULT);
+    return true;
 }
 
 
@@ -58,9 +78,24 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
 
 
 
-
-
 // РАБОЧИЕ ФУНКЦИИ
+
+
+    function GetTickerBDONE($type, $Ticker){
+
+        $table = [];
+        if ($type == "IN") $table = R::findOne("obmenin", 'WHERE ticker=?', [$Ticker]);
+        if ($type == "OUT") $table = R::findOne("obmenout",'WHERE ticker=?', [$Ticker]);
+
+        return $table;
+
+
+
+    }
+
+
+
+
 
     function GetWorkARR($exchange, $napravlenie, $PW){
 
@@ -72,7 +107,6 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
             return $DATA;
         }
 
-
         if (empty(GetCurText($exchange))){
             $DATA['errors'] = "Ошибка загрузки монет<br>";
             return $DATA;
@@ -80,33 +114,40 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
 
 
 
-
         if ($napravlenie == "enter")
         {
-
             foreach ($PW as $Perekrestok)
             {
-
-
                 $StartArr = GetStartArr($exchange);
-
-
                 $SITO1 = SitoStep1($StartArr, $Perekrestok, $ExchangeTickers, $exchange);
-                $DATA[] = $SITO1;
                 if (!empty($SITO1['errors'])) continue;
-
+                $DATA[] = $SITO1;
                 continue;
-
             }
-
             return $DATA;
         }
 
 
 
+        if ($napravlenie == "exit")
+        {
+
+            foreach ($PW as $Perekrestok){
+
+                $SITO2 = SitoStep2($ExchangeTickers, $exchange, $Perekrestok);
+                if(empty($SITO2)) continue;
+                $DATA[] = $SITO2;
+
+            }
+
+            return $DATA;
+
+        }
 
 
 
+
+        return true;
 
     }
 
@@ -131,7 +172,7 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
 
              if ($checksymbol == false)
              {
-                  echo "<font color='red'>Тикер ".$VAL['ticker']." отключен  </font> <br>";
+                //  echo "<font color='red'>Тикер ".$VAL['ticker']." отключен  </font> <br>";
                  continue;
              }
 
@@ -163,7 +204,7 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
             $TickerBirga = $key."/".$Perekrestok;
             if (empty($ExchangeTickers[$TickerBirga]['bid'])) continue;
            //   show($ExchangeTickers[$TickerBirga]);
-                   echo "Тикер на бирже: ".$TickerBirga." <br>";
+             //      echo "Тикер на бирже: ".$TickerBirga." <br>";
             $avgprice = ($ExchangeTickers[$TickerBirga]['bid']+$ExchangeTickers[$TickerBirga]['ask'])/2;
             $amountPerekrestok = $value*$avgprice;
             // echo "Берем монету ".$key." меняем ее на ".$Perekrestok." и получаем ".$amountPerekrestok." ".$Perekrestok." <br> ";
@@ -172,10 +213,15 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
            // echo "Объем торгов монетой: ".$TickerBirga." - ".$ExchangeTickers[$TickerBirga]['baseVolume']." <br>";
            // echo "Наше кол-во монеты: ".$value."<br>";
 
+
+
+
             if ($value > $ExchangeTickers[$TickerBirga]['baseVolume']/2)
             {
+                if ($exchange != "Payeer") continue;
+
                 //echo "<font color='red'>Тикер ".$TickerBirga." не проходит по объему торгов</font> <br> ";
-                continue;
+
             }
 
             $STEP1['amount'][$key] = $value;
@@ -220,10 +266,110 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
 
     }
 
+    function SitoStep2($ExchangeTickers, $exchange, $Perekrestok){
+
+        $DATA = [];
+
+        $TickersOUT = LoadTickersBD("OUT");
+
+
+        // Проверка на доступностью тикера на покупку в бирже
+
+        foreach ($TickersOUT as $VAL){
+
+
+
+            $checksymbol = checksymbolenter($VAL['ticker'], $exchange);
+
+
+            if ($checksymbol == false)
+            {
+              //  echo "<font color='red'>Тикер ".$VAL['ticker']." отключен  </font> <br>";
+                continue;
+            }
+            if ($VAL['limit'] > $_POST['StartCapital']){
+               // echo "<font color='red'>Тикер ".$VAL['ticker']." не проходит по стартовому капиталу  </font> <br>";
+                continue;
+            }
+
+            $TickerBirga = $VAL['ticker']."/".$Perekrestok;
+
+            if (empty($ExchangeTickers[$TickerBirga]['bid'])) continue;
+
+          //  echo "Тикер на бирже ".$TickerBirga."<br>";
+
+
+            $amountperekrestok = 0;
+            if ($_POST['StartMoneta'] == $Perekrestok) $amountperekrestok = $_POST['StartCapital'];
+            if ($_POST['StartMoneta'] != $Perekrestok)
+            {
+                $PerekrestokTicker = $Perekrestok."/".$_POST['StartMoneta'];
+                $PerekrestokAVGprice = ($ExchangeTickers[$PerekrestokTicker]['bid'] + $ExchangeTickers[$PerekrestokTicker]['ask'])/2;
+                $amountperekrestok = $_POST['StartCapital']/$PerekrestokAVGprice;
+            }
+            // Получаем сколько монеты получим после продажи
+
+
+         //   $avgprice = ($ExchangeTickers[$TickerBirga]['bid']+$ExchangeTickers[$TickerBirga]['ask'])/2;
+            $avgprice = $ExchangeTickers[$TickerBirga]['bid'];
+            $amoumtMoneta = $amountperekrestok/$avgprice;
+
+
+            // Фильтрация символ на ОБЪЕМ ТОРГОВ
+       //      echo "Объем торгов монетой: ".$TickerBirga." - ".$ExchangeTickers[$TickerBirga]['baseVolume']." <br>";
+       //      echo "Наше кол-во монеты: ".$amoumtMoneta."<br>";
+
+            if ($amoumtMoneta > $ExchangeTickers[$TickerBirga]['baseVolume']/2)
+            {
+
+                if ($exchange != "Payeer") continue;
+
+            //    echo "Кол-во монеты: ".$amoumtMoneta."<br>";
+            //    echo "Объем в кол-ве монеты: ".$ExchangeTickers[$TickerBirga]['baseVolume']."<br>";
+            //    echo "<font color='red'>Тикер ".$TickerBirga." не проходит по объему торгов</font> <br> ";
+            //    echo "<hr>";
+              //  continue;
+            }
+
+            $resultsale = $amoumtMoneta*$VAL['price'];
+
+          //   echo "Работаем с тикером ".$VAL['ticker']."<br>";
+         //     echo "Тикер на бирже ".$TickerBirga."<br>";
+          //     echo "Цена ".$avgprice."<br>";
+          //     echo "Кол-во актива ".$amoumtMoneta."<br>";
+
+
+            $RESULT['amount'][$VAL['ticker']] = $amoumtMoneta;
+            $RESULT['result'][$VAL['ticker']] = $resultsale;
+
+        }
+
+      //  show($RESULT);
+
+        if (empty($RESULT['result'])) return false;
+
+        arsort($RESULT['result']);
+
+        $DATA['exchange'] = $exchange;
+        $DATA['startcapital'] = $_POST['StartCapital'];
+        $DATA['startmoneta'] = $_POST['StartMoneta'];
+        $DATA['perekrestok'] = $Perekrestok;
+        $DATA['amountperekrestok'] = $amountperekrestok;
+        $DATA['symbolbest'] = array_key_first($RESULT['result']);
+        $DATA['symbolamount'] = $RESULT['amount'][$DATA['symbolbest']];
+        $DATA['amount'] = reset($RESULT['result']);
+
+
+        return $DATA;
+
+
+    }
+
+
+
 
 
     // ТЕХНИЧЕСКИЕ ФУНКЦИИ
-
    function GetCurText($exchange){
 
         $DATA = [];
@@ -238,17 +384,19 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
 
     }
 
-
-
-
     function checksymbolenter($symbol,$exchange)
     {
+
+
+        if ($exchange == "Payeer") return true;
+
 
         if ($symbol == "USDT") return true;
         if ($symbol == "BTC") return true;
         if ($symbol == "ETH") return true;
 
         $FC = GetCurText($exchange);
+
 
         if (empty($FC))
         {
@@ -275,7 +423,6 @@ if (!empty($_POST['StartMoneta']) && $napravlenie == "enter"){
         return true;
 
     }
-
 
 
     function GetTickerText($exchange){

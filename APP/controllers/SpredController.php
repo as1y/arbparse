@@ -36,14 +36,12 @@ class SpredController extends AppController {
         $this->PereWork[] = "TRX";
 
 
-        $this->EXLOGOS['Hitbtc'] = "/assets_base/hitbtc.png";
-        $this->EXLOGOS['Exmo'] = "/assets_base/exmo.png";
-
 
 
         if (empty($_POST)) exit("fi");
 
-        $napravlenie = "exit";
+        $napravlenie = "enter";
+
 
 
         if (!empty($_POST['currency']) && $napravlenie == "enter")
@@ -57,7 +55,9 @@ class SpredController extends AppController {
                     $DATA[] = $this->GetWorkARR($exchange, $napravlenie);
 
                 }
-                show($DATA);
+
+               // show($DATA);
+
             return true;
 
         }
@@ -83,6 +83,7 @@ class SpredController extends AppController {
             $display = json_encode($DATA, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 
 
+            return true;
           //  print_r($display);
            // exit($display);
            // return true;
@@ -226,74 +227,6 @@ class SpredController extends AppController {
     }
 
 
-    private function renderEnter($DATA, $exchange){
-
-
-        if ($this->StartMoneta == "USDT") $round = 2;
-
-        foreach ($DATA as $VAL)
-        {
-            $profit = $VAL['amountstart']-$VAL['startcapital'];
-            $profit = round($profit, $round);
-
-            if ($profit < 0) continue;
-
-            ?>
-
-
-            <div class="card card-body">
-                <div class="media align-items-center align-items-lg-start text-center text-lg-left flex-column flex-lg-row">
-                    <div class="mr-lg-3 mb-3 mb-lg-0">
-                        <a href="#">
-                            <img src="<?=$this->EXLOGOS[$exchange]?>" width="96" alt="">
-                        </a>
-                    </div>
-
-                    <div class="media-body">
-                        <h6 class="media-title font-weight-semibold">
-                            <a href="#">СВЯЗКА НА ВХОД</a>
-                        </h6>
-
-                        <ul class="list-inline list-inline-dotted mb-3 mb-lg-2">
-                            <li class="list-inline-item"><a href="#" class="text-muted"><?=$VAL['startmoneta']?></a></li>
-                            <li class="list-inline-item"><a href="#" class="text-muted"><?=$VAL['symbolbest']?></a></li>
-                        </ul>
-
-                        <p class="mb-3">
-
-                            1. Отдаем <?=$VAL['startcapital']?> <?=$VAL['startmoneta']?> <i class="icon-redo2"></i> | Получаем <?=$VAL['symbolbest']?> <?=$VAL['symbolamount']?> на кошелек биржи <br>
-                            2. На бирже продаем <?=$VAL['symbolamount']?> <?=$VAL['symbolbest']?> | Получаем <?=$VAL['amount']?> <?=$VAL['perekrestok']?>  <br>
-
-                            <?php if($VAL['startmoneta'] == $VAL['perekrestok']): ?>
-                                3. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b><br>
-                            <?php else:?>
-                                3. Продаем <?=$VAL['amount']?> <?=$VAL['perekrestok']?> и получаем ~ <?=$VAL['startmoneta']?> <?=$VAL['amountstart']?> <br>
-                                4. Профит <b><?=$profit?>  <?=$VAL['startmoneta']?></b> <br>
-                            <?php endif; ?>
-
-                        </p>
-
-
-                    </div>
-
-                    <div class="mt-3 mt-lg-0 ml-lg-3 text-center">
-
-                        <h3 class="mb-0 font-weight-semibold"><span class="text-success">+<?=$profit?><b> <?=$this->StartMoneta?></b></span></h3>
-
-                        <!--                        <div class="text-muted">85 использований</div>-->
-
-                        <a href="/main/work/?symbolbest=<?=$VAL['symbolbest']?>&exchange=<?=$exchange?>&type=enter" type="button"  class="btn btn-teal mt-3"><i class="icon-arrow-right8 mr-2"></i> В РАБОТУ</a>
-                    </div>
-                </div>
-            </div>
-
-            <?php
-        }
-
-
-        return true;
-    }
-
 
 
 
@@ -374,7 +307,6 @@ class SpredController extends AppController {
         return $DATA;
 
     }
-
 
 
     private function GetStartArr($TickersIN){
