@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 
 require 'vendor/autoload.php';
 require 'lib/functions.php'; //ОБЩИЕ ФУНКЦИИ
 require 'lib/functions_app.php'; //ФУНКЦИИ ПРИЛОЖЕНИЯ
 
-$url = "https://p2pmarket.me/parsetickerstwo";
+$url = "https://p2pmarket.me/parsewave";
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);

@@ -41,28 +41,18 @@ class ParsetickersoneController extends AppController {
         $DATA = $exchange->fetch_tickers();
         $this->WriteTickers("Exmo", $DATA);
 
-        $exchange = new \ccxt\deribit (array ('timeout' => 30000));
+
+//        $exchange = new \ccxt\ascendex (array ('timeout' => 30000));
+//        $DATA = $exchange->fetch_tickers();
+//        $this->WriteTickers("Ascendex", $DATA);
+
+
+
+
+
+        $exchange = new \ccxt\poloniex (array ('timeout' => 30000));
         $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Deribit", $DATA);
-
-        $exchange = new \ccxt\ascendex (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Ascendex", $DATA);
-
-
-
-    /*
-        $exchange = new \ccxt\binance (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Binance", $DATA);
-*/
-
-
-
-
-        $exchange = new \ccxt\gateio (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Gateio", $DATA);
+        $this->WriteTickers("Poloniex", $DATA);
 
 
 

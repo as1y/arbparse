@@ -34,9 +34,9 @@ class ParsecurController extends AppController {
         $DATA = $exchange->fetchCurrencies();
         $this->WriteTickers("Hitbtc", $DATA);
 
-        $exchange = new \ccxt\gateio (array ('timeout' => 30000));
+        $exchange = new \ccxt\poloniex (array ('timeout' => 30000));
         $DATA = $exchange->fetchCurrencies();
-        $this->WriteTickers("Gateio", $DATA);
+        $this->WriteTickers("Poloniex", $DATA);
 
 
 

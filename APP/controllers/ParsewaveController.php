@@ -6,13 +6,13 @@ use APP\models\Panel;
 use APP\core\base\Model;
 use RedBeanPHP\R;
 
-class ParsepayController extends AppController {
+class ParsewaveController extends AppController {
     public $layaout = 'PANEL';
     public $BreadcrumbsControllerLabel = "Панель управления";
     public $BreadcrumbsControllerUrl = "/panel";
 
 
-    public $type = "PAY";
+    public $type = "WAVE";
     public $sleep = 3;
 
     // ТЕХНИЧЕСКИЕ ПЕРЕМЕННЫЕ
@@ -25,34 +25,34 @@ class ParsepayController extends AppController {
         $this->ControlTrek();
         $this->StartTrek();
 
-        echo "<h2>ПАРСИНГ ТИКЕРОВ PAYEER</h2>";
+        echo "<h2>ПАРСИНГ ТИКЕРОВ WAVES</h2>";
+
+        $exchange = new \ccxt\wavesexchange (array ('timeout' => 30000));
+        $DATA = $exchange->fetchMarkets();
+
+       // show($DATA);
+
+        $CUR = [];
+        foreach ($DATA as $key=>$val){
+            //$CUR[$val['symbol']]['baseVolume'] = $val['info']['24h_volume'];
+
+            $ticker = $exchange->fetchTicker($val['symbol']);
+            //show($ticker);
 
 
-        $RESULT = $this->GetAllPairs();
-
-        $MASSIV = [];
-        foreach ($RESULT['pairs'] as $key=>$VAL){
-
-            $key2 = str_replace("_", "/", $key);
-            $MASSIV[$key2] = $VAL;
-          //  echo $key2."<br>";
+            $CUR[$val['symbol']] = $ticker;
+            $CUR[$val['symbol']]['bid'] = $ticker['close'];
+            $CUR[$val['symbol']]['ask'] = $ticker['close'];
 
         }
 
-     //     show($MASSIV);
+        //show($CUR);
 
-        $this->WriteTickers("Payeer", $MASSIV);
+        $this->WriteTickers("Waves", $CUR);
 
-
-
-//        $exchange = new \ccxt\exmo (array ('timeout' => 30000));
-//        $DATA = $exchange->fetchCurrencies();
-//        show($DATA);
+//        $this->WriteTickers("Payeer", $MASSIV);
 
 
-    //    show($TICKERS);
-
-       // exit("11");
 
 
 
@@ -67,6 +67,8 @@ class ParsepayController extends AppController {
 
         $sleep = rand($this->sleep, $this->sleep*2);
         sleep($sleep);
+
+
         $this->StopTrek();
 
 

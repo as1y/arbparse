@@ -6,14 +6,13 @@ use APP\models\Panel;
 use APP\core\base\Model;
 use RedBeanPHP\R;
 
-class ParsepayController extends AppController {
+class ParseyobitController extends AppController {
     public $layaout = 'PANEL';
     public $BreadcrumbsControllerLabel = "Панель управления";
     public $BreadcrumbsControllerUrl = "/panel";
 
 
     public $type = "PAY";
-    public $sleep = 3;
 
     // ТЕХНИЧЕСКИЕ ПЕРЕМЕННЫЕ
     public function indexAction()
@@ -65,8 +64,7 @@ class ParsepayController extends AppController {
         // Обновление
 
 
-        $sleep = rand($this->sleep, $this->sleep*2);
-        sleep($sleep);
+
         $this->StopTrek();
 
 

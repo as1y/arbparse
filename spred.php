@@ -25,7 +25,13 @@ $Perework[] = "USDT";
 $Perework[] = "BTC";
 $Perework[] = "ETH";
 $Perework[] = "TRX";
-
+//$Perework[] = "RUB";
+//$Perework[] = "LTC";
+$Perework[] = "XRP";
+$Perework[] = "USDN";
+$Perework[] = "BCH";
+$Perework[] = "BNB";
+$Perework[] = "USDC";
 
 $_GLOBAL['PW'] = $Perework;
 
@@ -34,14 +40,16 @@ $_GLOBAL['PW'] = $Perework;
 
 
 //$_POST['StartMoneta'] = "USDT";
-//$_POST['type'] = "exit";
+//$_POST['type'] = "enter";
 //$_POST['StartCapital'] = 10000;
-//$_POST['arrEx'] = "Hitbtc";
+//$_POST['arrEx'] = "Waves";
 
 
 if (!empty($_POST['StartMoneta']) && !empty($_POST['type'])){
 
      $arrEX = explode(",", $_POST['arrEx']);
+
+     shuffle($arrEX);
 
      foreach ($arrEX as $exchange) {
           $DATA[$exchange] = GetWorkARR($exchange, $_POST['type'], $_GLOBAL['PW']);
@@ -218,8 +226,11 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
             if ($value > $ExchangeTickers[$TickerBirga]['baseVolume']/2)
             {
-                if ($exchange != "Payeer") continue;
+                $continue = 0;
+                if ($exchange == "Payeer") $continue = 1;
+           //    if ($exchange == "Waves") $continue = 1;
 
+                if ($continue == 0) continue;
                 //echo "<font color='red'>Тикер ".$TickerBirga." не проходит по объему торгов</font> <br> ";
 
             }
@@ -255,7 +266,24 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
         if ($_POST['StartMoneta'] != $Perekrestok)
         {
+
             $pricetick = $Perekrestok."/".$_POST['StartMoneta'];
+
+            if ($Perekrestok == "USDN") $pricetick = $_POST['StartMoneta']."/".$Perekrestok;
+            if ($Perekrestok == "USDC") $pricetick = $_POST['StartMoneta']."/".$Perekrestok;
+
+
+
+           // echo "ПрайсТИК ".$pricetick."<br>";
+
+            if (empty($ExchangeTickers[$pricetick]['bid']))
+            {
+                if ($Perekrestok == "LTC") $pricetick = $_POST['StartMoneta']."/".$Perekrestok;
+
+                //echo "Перекрестный тикер не найден<br>";
+
+            }
+
             $avgprice = ($ExchangeTickers[$pricetick]['bid']+$ExchangeTickers[$pricetick]['ask'])/2;
             $DATA['amountstart'] = $DATA['amount']*$avgprice;
         }
@@ -372,8 +400,11 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
     // ТЕХНИЧЕСКИЕ ФУНКЦИИ
    function GetCurText($exchange){
 
-        $DATA = [];
+        if ($exchange == "Payeer") return true;
+       if ($exchange == "Waves") return true;
 
+
+        $DATA = [];
         $file = file_get_contents(WWW."/Cur".$exchange.".txt");     // Открыть файл data.json
         $DATA = json_decode($file,TRUE);              // Декодировать в массив
 
@@ -389,6 +420,7 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
 
         if ($exchange == "Payeer") return true;
+        if ($exchange == "Waves") return true;
 
 
         if ($symbol == "USDT") return true;
