@@ -37,24 +37,19 @@ class ParsetickersoneController extends AppController {
 
 
 
-        $exchange = new \ccxt\exmo (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Exmo", $DATA);
-
-
-//        $exchange = new \ccxt\ascendex (array ('timeout' => 30000));
-//        $DATA = $exchange->fetch_tickers();
-//        $this->WriteTickers("Ascendex", $DATA);
-
-
-
 
 
         $exchange = new \ccxt\poloniex (array ('timeout' => 30000));
         $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Poloniex", $DATA);
+         $this->WriteTickers("Poloniex", $DATA);
+
+       // exit("11");
 
 
+
+        $exchange = new \ccxt\exmo (array ('timeout' => 30000));
+        $DATA = $exchange->fetch_tickers();
+        $this->WriteTickers("Exmo", $DATA);
 
 
 
@@ -117,6 +112,7 @@ class ParsetickersoneController extends AppController {
 
     private function WriteTickers($exchangename, $Tickers){
 
+        echo "<b>Вывод тикеров</b> ".$exchangename."<br>";
 
 
         if (!file_exists("Ticker".$exchangename.".txt"))
@@ -126,7 +122,10 @@ class ParsetickersoneController extends AppController {
             fclose($fd);
         }
 
+       // show($Tickers);
         $data = json_encode($Tickers);
+        //echo  json_last_error();
+       // show($data);
 
         file_put_contents("Ticker".$exchangename.".txt", $data);
 

@@ -27,7 +27,35 @@ class ParsecurController extends AppController {
 
         echo "<h2>ПАРСИНГ СОСТОЯНИЕ МОНЕТ</h2>";
 
-        // Перезаписывать на диск???
+
+        // КУРЕНСИ WAVES
+        $exchange = new \ccxt\wavesexchange (array ('timeout' => 30000));
+        $DATA = $exchange->fetchMarkets();
+
+        $MASS = [];
+        foreach ($DATA as $key=>$val){
+
+            if (!in_array($val['base'], $MASS)){
+                $MASS[] = $val['base'];
+               // echo "Добавили элмент".$val['base']."<br>";
+            }
+        }
+
+        $FEES = [];
+        foreach ($MASS as $key=>$val)
+        {
+
+            $url = "https://api.waves.exchange/v1/withdraw/currencies/".$val;
+           $res = fCURL($url);
+           $res = json_decode($res, true);
+           if (!empty($res['fees']['flat'])) $FEES[$val]['fee'] = $res['fees']['flat'];
+          // show($res);
+        }
+
+        $this->WriteTickers("Waves", $FEES);
+
+
+        //////////////////////////////////
 
 
         $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));

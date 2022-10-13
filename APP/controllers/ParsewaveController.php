@@ -43,6 +43,8 @@ class ParsewaveController extends AppController {
             $CUR[$val['symbol']] = $ticker;
             $CUR[$val['symbol']]['bid'] = $ticker['close'];
             $CUR[$val['symbol']]['ask'] = $ticker['close'];
+         //   $CUR[$val['symbol']]['baseVolume'] = $ticker['baseVolume'];
+
 
         }
 

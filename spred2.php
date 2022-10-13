@@ -38,9 +38,6 @@ $_GLOBAL['PW'] = $Perework;
 
 //if (empty($_POST)) exit("fi");
 
-// Комиссии на вход
-$EnterFEE['USDT'] = 0;
-
 
 $_POST['StartMoneta'] = "USDT";
 $_POST['type'] = "enter";
@@ -61,31 +58,13 @@ if (!empty($_POST['StartMoneta']) && !empty($_POST['type'])){
 
      $RESULT['type'] = $_POST['type'];
      $RESULT['result'] = $DATA;
-     $RESULT = json_encode($RESULT, JSON_UNESCAPED_UNICODE);
-     print_r($RESULT);
+
+     show($RESULT);
+
+   //  $RESULT = json_encode($RESULT, JSON_UNESCAPED_UNICODE);
+   //  print_r($RESULT);
 
 }
-
-
-
-if(!empty($_POST['BDIN']) &&  $_POST['BDIN'] == true)
-{
-    $Ticker = GetTickerBDONE("IN", $_POST['ticker']);
-    $RESULT = json_encode($Ticker, JSON_UNESCAPED_UNICODE);
-    print_r($RESULT);
-    return true;
-}
-
-if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
-{
-    $Ticker = GetTickerBDONE("OUT", $_POST['ticker']);
-    $RESULT = json_encode($Ticker, JSON_UNESCAPED_UNICODE);
-    print_r($RESULT);
-    return true;
-}
-
-
-
 
 
 
@@ -113,7 +92,6 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
         $ExchangeTickers = GetTickerText($exchange);
 
 
-
         if (!is_numeric($_POST['StartCapital'])){
             $DATA['errors'] = "Не корректно задан рабочий капитал<br>";
             return $DATA;
@@ -130,9 +108,10 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
         {
             foreach ($PW as $Perekrestok)
             {
+                // Сколько ты получаешь монет за исходные USDT
                 $StartArr = GetStartArr($exchange);
-                //echo "<b>Перекрестная монета:".$Perekrestok."</b><br>";
                 //show($StartArr);
+
                 $SITO1 = SitoStep1($StartArr, $Perekrestok, $ExchangeTickers, $exchange);
                 if (!empty($SITO1['errors'])) continue;
                 $DATA[] = $SITO1;
@@ -158,11 +137,14 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
         }
 
+
+
+
         return true;
 
     }
 
-    // Получаем список монет которые можем купить за входящую сумму
+
      function GetStartArr($exchange){
 
         $DATA = [];
@@ -178,7 +160,6 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
          {
 
              // Проверка на доступностью тикера на покупку в бирже
-            //echo "Работаем с ".$VAL['ticker']."<br>";
 
              $checksymbol = checksymbolenter($VAL['ticker'],$exchange);
 
@@ -203,7 +184,6 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
     }
 
 
-        // Берем список все монет, которы можем купить за АКТИВ
      function SitoStep1($StartArr, $Perekrestok,$ExchangeTickers, $exchange){
 
         $DATA = [];
@@ -215,33 +195,32 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
             // Получаем ТИКЕР с БИРЖИ
             $TickerBirga = $key."/".$Perekrestok;
-           // echo "Работаем с тикером на бирже: ".$TickerBirga." <br>";
-            if (empty($ExchangeTickers[$TickerBirga]['bid']))
-            {
-              //  echo "<font color='red'>Тикер ".$TickerBirga." не найден в тикерах биржи</font><br>";
-                continue;
-            }
-              //show($ExchangeTickers[$TickerBirga]);
-             $avgprice = ($ExchangeTickers[$TickerBirga]['bid']+$ExchangeTickers[$TickerBirga]['ask'])/2;
+            if (empty($ExchangeTickers[$TickerBirga]['bid'])) continue;
+           //   show($ExchangeTickers[$TickerBirga]);
+                   echo "Тикер на бирже: ".$TickerBirga." <br>";
+            $avgprice = ($ExchangeTickers[$TickerBirga]['bid']+$ExchangeTickers[$TickerBirga]['ask'])/2;
             $amountPerekrestok = $value*$avgprice;
-            // echo "Берем монету ".$key." меняем ее на ".$Perekrestok." и получаем ".$amountPerekrestok." ".$Perekrestok." <br> ";
+             echo "Берем монету ".$key." меняем ее на ".$Perekrestok." и получаем ".$amountPerekrestok." ".$Perekrestok." <br> ";
 
             // Фильтрация символ на ОБЪЕМ ТОРГОВ
-           // echo "Объем торгов монетой: ".$TickerBirga." - ".$ExchangeTickers[$TickerBirga]['baseVolume']." <br>";
-           // echo "Наше кол-во монеты: ".$value."<br>";
+            echo "Объем торгов монетой: ".$TickerBirga." - ".$ExchangeTickers[$TickerBirga]['baseVolume']." <br>";
+            echo "Наше кол-во монеты: ".$value."<br>";
 
 
 
 
-            // ПРОВЕРКА НА ОБЪЕМ ТОРГОВ
-            if ($value > $ExchangeTickers[$TickerBirga]['baseVolume']/3)
+            if ($value > $ExchangeTickers[$TickerBirga]['baseVolume']/2)
             {
-              //  echo "<font color='red'>Тикер ".$TickerBirga." не проходит по объему торгов</font> <br> ";
-                continue;
+                $continue = 0;
+                if ($exchange == "Payeer") $continue = 1;
+           //    if ($exchange == "Waves") $continue = 1;
+
+                if ($continue == 0) continue;
+                //echo "<font color='red'>Тикер ".$TickerBirga." не проходит по объему торгов</font> <br> ";
+
             }
 
             $STEP1['amount'][$key] = $value;
-            $STEP1['avg'][$key] = $avgprice;
             $STEP1['result'][$key] = $amountPerekrestok;
 
         }
@@ -255,14 +234,13 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
         arsort($STEP1['result']);
 
-        show($STEP1);
+        //show($STEP1);
 
         $DATA['exchange'] = $exchange;
         $DATA['startcapital'] = $_POST['StartCapital'];
         $DATA['startmoneta'] = $_POST['StartMoneta'];
         $DATA['symbolbest'] = array_key_first($STEP1['result']);
         $DATA['symbolamount'] = $STEP1['amount'][$DATA['symbolbest']];
-        $DATA['avg'] = $STEP1['avg'][$DATA['symbolbest']];
         $DATA['perekrestok'] = $Perekrestok;
         $DATA['amount'] = reset($STEP1['result']);
 
@@ -291,8 +269,7 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
             }
 
-           $avgprice = ($ExchangeTickers[$pricetick]['bid']+$ExchangeTickers[$pricetick]['ask'])/2;
-       //     $avgprice = ($ExchangeTickers[$pricetick]['ask']);
+            $avgprice = ($ExchangeTickers[$pricetick]['bid']+$ExchangeTickers[$pricetick]['ask'])/2;
             $DATA['amountstart'] = $DATA['amount']*$avgprice;
         }
 
@@ -466,15 +443,8 @@ if(!empty($_POST['BDOUT']) &&  $_POST['BDOUT'] == true)
 
 
     function GetTickerText($exchange){
-
         $file = file_get_contents(WWW."/Ticker".$exchange.".txt");     // Открыть файл data.json
         $MASSIV = json_decode($file,TRUE);              // Декодировать в массив
-
-        if ( empty($MASSIV))
-        {
-            echo "<font color='red'>Ошибка загрузки тикера на бирже ".$exchange."</font><br>";
-        }
-
         return $MASSIV;
     }
 
