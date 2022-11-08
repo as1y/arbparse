@@ -29,14 +29,10 @@ class ParsetickersoneController extends AppController {
         // Перезаписывать на диск???
 
 
-        /*
+
         $exchange = new \ccxt\binance (array ('timeout' => 30000));
         $DATA = $exchange->fetch_tickers();
         $this->WriteTickers("Binance", $DATA);
-        */
-
-
-
 
 
         $exchange = new \ccxt\poloniex (array ('timeout' => 30000));
@@ -53,9 +49,9 @@ class ParsetickersoneController extends AppController {
 
 
 
-        $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Hitbtc", $DATA);
+//        $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));
+//        $DATA = $exchange->fetch_tickers();
+//        $this->WriteTickers("Hitbtc", $DATA);
 
 
 

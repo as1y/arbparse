@@ -57,6 +57,10 @@ class ParsecurController extends AppController {
 
         //////////////////////////////////
 
+        $exchange = new \ccxt\binance (array ('timeout' => 30000));
+        $DATA = $exchange->fetchCurrencies();
+        $this->WriteTickers("Binance", $DATA);
+
 
         $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));
         $DATA = $exchange->fetchCurrencies();
