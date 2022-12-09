@@ -21,56 +21,36 @@ class ParsetickersoneController extends AppController {
         $this->layaout = false;
         $Panel =  new Panel();
 
-        $this->ControlTrek();
-        $this->StartTrek();
+       // $this->ControlTrek();
+      //  $this->StartTrek();
 
         echo "<h2>ПАРСИНГ ТИКЕРОВ</h2>";
 
         // Перезаписывать на диск???
 
+        //$this->TickersBinance();
 
-
-        $exchange = new \ccxt\binance (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Binance", $DATA);
-
-
-        $exchange = new \ccxt\poloniex (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-         $this->WriteTickers("Poloniex", $DATA);
-
-       // exit("11");
+        $this->TickersPoloniex();
 
 
 
-        $exchange = new \ccxt\exmo (array ('timeout' => 30000));
-        $DATA = $exchange->fetch_tickers();
-        $this->WriteTickers("Exmo", $DATA);
-
-
-
-//        $exchange = new \ccxt\hitbtc (array ('timeout' => 30000));
-//        $DATA = $exchange->fetch_tickers();
-//        $this->WriteTickers("Hitbtc", $DATA);
-
-
-
-        // Проверка наличие файла
-
-
-        //БИНАНС
-
-
-        // Обновление
-
-
-
-        $this->StopTrek();
+        //$this->StopTrek();
 
 
 
 
 //        $this->set(compact(''));
+
+    }
+
+
+    private function TickersPoloniex(){
+
+        $exchange = new \ccxt\poloniex (array ('timeout' => 30000));
+        $DATA = $exchange->fetch_tickers();
+        if (!empty($DATA)) $this->WriteTickers("Poloniex", $DATA);
+     
+        return true;
 
     }
 
